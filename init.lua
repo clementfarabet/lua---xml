@@ -116,3 +116,38 @@ function find(var, tag, attributeKey,attributeValue)
   end
 end
 
+-- parse XML to produce clean table:
+function parse(tbl)
+   local function recparse(tbl)
+      -- dst:
+      local dst = {}
+      local key = tbl[0]
+      -- parse:
+      for i,elt in base.ipairs(tbl) do
+         if base.type(elt) == 'table' then
+            local elts,key = recparse(elt)
+            dst[key] = dst[key] or {}
+            base.table.insert(dst[key], elts)
+         else
+            base.table.insert(dst, elt)
+         end
+      end
+      -- cleanup:
+      if base.type(dst) == 'table' and #dst == 1 then 
+         dst = dst[1] 
+      end
+      if base.type(dst) == 'table' then
+         for k,elt in base.pairs(dst) do
+            if base.type(elt) and #elt == 1 then
+               dst[k] = elt[1]
+            end
+         end
+      end
+      -- return tbl + key
+      return dst, key
+   end
+   
+   local dst, key = recparse(tbl)
+   return {[key] = dst}
+end
+
